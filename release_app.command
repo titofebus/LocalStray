@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VERSION="${QWEN_PRIME_VERSION:-0.1.0}"
+VERSION="${LOCAL_STRAY_VERSION:-0.1.0}"
 if [ -z "${DEVELOPER_ID_APPLICATION:-}" ]; then
     echo "Set DEVELOPER_ID_APPLICATION to an installed Developer ID identity." >&2
     exit 1
@@ -12,15 +12,15 @@ if [ -z "${SPARKLE_PUBLIC_ED_KEY:-}" ]; then
     exit 1
 fi
 
-RUNTIME_PAYLOAD="${QWEN_PRIME_EMBEDDED_RUNTIME:-$PROJECT_DIR/.build/QwenPrimeRuntime}"
-if [ -z "${QWEN_PRIME_EMBEDDED_RUNTIME:-}" ]; then
-    QWEN_PRIME_RUNTIME_OUTPUT="$RUNTIME_PAYLOAD" \
+RUNTIME_PAYLOAD="${LOCAL_STRAY_EMBEDDED_RUNTIME:-$PROJECT_DIR/.build/LocalStrayRuntime}"
+if [ -z "${LOCAL_STRAY_EMBEDDED_RUNTIME:-}" ]; then
+    LOCAL_STRAY_RUNTIME_OUTPUT="$RUNTIME_PAYLOAD" \
         "$PROJECT_DIR/build_embedded_runtime.command"
 fi
-QWEN_PRIME_EMBEDDED_RUNTIME="$RUNTIME_PAYLOAD" "$PROJECT_DIR/package_app.sh"
-ARCHIVE="$PROJECT_DIR/QwenPrime-v$VERSION-macOS.zip"
+LOCAL_STRAY_EMBEDDED_RUNTIME="$RUNTIME_PAYLOAD" "$PROJECT_DIR/package_app.sh"
+ARCHIVE="$PROJECT_DIR/LocalStray-v$VERSION-macOS.zip"
 rm -f "$ARCHIVE" "$ARCHIVE.sha256"
-ditto -c -k --keepParent "$PROJECT_DIR/QwenPrime.app" "$ARCHIVE"
+ditto -c -k --keepParent "$PROJECT_DIR/LocalStray.app" "$ARCHIVE"
 
 NOTARIZED=0
 if [ -n "${NOTARY_PROFILE:-}" ]; then
@@ -36,9 +36,9 @@ elif [ -n "${APPLE_ID:-}" ] && [ -n "${APPLE_TEAM_ID:-}" ] \
     NOTARIZED=1
 fi
 if [ "$NOTARIZED" = "1" ]; then
-    xcrun stapler staple "$PROJECT_DIR/QwenPrime.app"
+    xcrun stapler staple "$PROJECT_DIR/LocalStray.app"
     rm -f "$ARCHIVE"
-    ditto -c -k --keepParent "$PROJECT_DIR/QwenPrime.app" "$ARCHIVE"
+    ditto -c -k --keepParent "$PROJECT_DIR/LocalStray.app" "$ARCHIVE"
 fi
 
 ARCHIVE_NAME="$(basename "$ARCHIVE")"

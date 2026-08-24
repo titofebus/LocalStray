@@ -1,6 +1,6 @@
-# Qwen Prime
+# Local Stray
 
-Qwen Prime is a native Swift 6 and SwiftUI client for a local OpenAI-compatible
+Local Stray is a native Swift 6 and SwiftUI client for a local OpenAI-compatible
 Qwen3.8 endpoint on Apple Silicon. It supports streaming responses, explicit
 direct and reasoning modes, collapsible reasoning output, Markdown and code
 rendering, persistent conversations, and local runtime health controls.
@@ -18,7 +18,7 @@ workspace processes after approval. The stable process substrate supports
 bounded foreground execution plus supervised start, status, and stop operations
 for long-running apps. Executables resolve from trusted macOS and Xcode tool
 locations or from a workspace-relative built artifact; arguments are passed as
-an array without Qwen Prime constructing a shell command string.
+an array without Local Stray constructing a shell command string.
 
 All processes run in the embedded App-Sandboxed XPC helper with no network
 entitlement, workspace-scoped read/write access, bounded output, timeout, and
@@ -42,11 +42,13 @@ and uncertain requests retain the complete catalog.
 
 ## Components
 
-Qwen Prime is the UI. Public app builds bundle the Python inference runtime but
+Local Stray is the UI. Public app builds bundle the Python inference runtime but
 never bundle model weights. The companion
-[`qwen-prime-runtime`](https://github.com/adriancmurray/qwen-prime-runtime)
-project serves a hybrid Q8/Q4 Qwen3.8-27B target by default, with a matching
-6-bit native MTP draft through MLX and `dflash-mlx`. Prime Agent is a separate
+[`LocalStrayRuntime`](https://github.com/titofebus/LocalStrayRuntime) mirror
+serves a hybrid Q8/Q4 Qwen3.8-27B target by default, with a matching 6-bit
+native MTP draft through MLX and `dflash-mlx`. It was seeded from
+[`adriancmurray/qwen-prime-runtime`](https://github.com/adriancmurray/qwen-prime-runtime),
+which remains the upstream to review and synchronize. Prime Agent is a separate
 upstream project and can connect to the
 same endpoint; it is not bundled or forked here.
 
@@ -59,7 +61,7 @@ and UI validation contracts in
 - Apple Silicon Mac running macOS 14 or later
 - Swift 6 toolchain
 - A local Qwen3.8-27B MLX artifact and matching native MTP draft
-- A source checkout of `qwen-prime-runtime` only when building the app yourself
+- A source checkout of `LocalStrayRuntime` only when building the app yourself
 
 ## Model downloads
 
@@ -72,15 +74,15 @@ Download both repositories to local folders, then select those folders in
 ## Build
 
 ```bash
-git clone https://github.com/adriancmurray/QwenPrime.git
-cd QwenPrime
+git clone <canonical-local-stray-repository-url>
+cd LocalStray
 ./package_app.sh
-open QwenPrime.app
+open LocalStray.app
 ```
 
 The app connects only to `http://127.0.0.1:8000/v1` by default. Public builds
 include the runtime. Choose the target and draft directories in **Settings →
-Engine & MLX**; Qwen Prime saves those paths in Application Support, validates
+Engine & MLX**; Local Stray saves those paths in Application Support, validates
 the pair, and starts the local server.
 
 For a source build without an embedded runtime, configure and start the
@@ -99,7 +101,7 @@ provider into an existing Prime Agent configuration without replacing other
 providers, and package the app:
 
 ```bash
-QWEN_PRIME_RUNTIME_SOURCE=/path/to/qwen-prime-runtime \
+LOCAL_STRAY_RUNTIME_SOURCE=/path/to/LocalStrayRuntime \
 ./setup.sh /path/to/Qwen3.8-27B-Hybrid-Q8Q4 \
   /path/to/Qwen3.8-27B-MTP-MLX-6bit
 ```
@@ -109,7 +111,7 @@ QWEN_PRIME_RUNTIME_SOURCE=/path/to/qwen-prime-runtime \
 Open **Settings → General → Local MCP Servers** and add one or more Streamable
 HTTP endpoints listening on `localhost`, `127.0.0.1`, or `::1`. Each server can
 be enabled independently. **Test Connection** verifies the endpoint and shows
-its discovered tool catalog before an Agent run. Qwen Prime refreshes enabled
+its discovered tool catalog before an Agent run. Local Stray refreshes enabled
 servers at the start of each Agent run and exposes their tools as
 `mcp__<provider>__<tool>` names. It does not send MCP roots or the selected
 workspace path during connection. Each external tool call pauses in the same
@@ -146,13 +148,16 @@ additional tools, access, or approval authority.
 
 ## Agent skills (preview)
 
-Qwen Prime discovers standard `SKILL.md` packages from
-`<workspace>/.qwenprime/skills/<package>/SKILL.md` and
-`~/Library/Application Support/QwenPrime/skills/<package>/SKILL.md`. Open
+Local Stray discovers standard `SKILL.md` packages from
+`<workspace>/.localstray/skills/<package>/SKILL.md` and
+`~/Library/Application Support/LocalStray/skills/<package>/SKILL.md`. Open
 **Settings → General → Agent Skills** to refresh and enable individual skills.
 Enabled skills are still loaded only when the prompt explicitly names them,
 for example `$swift-review`. Each loaded skill appears in the conversation as a
 Skill card so the run's added context is visible.
+
+For continuity, `<workspace>/.qwenprime/skills` remains readable during the
+rebrand. A Local Stray package with the same name takes precedence.
 
 Skills v1 loads only the selected `SKILL.md` instructions. It does not execute
 bundled scripts, read referenced files, add tools, expand workspace or network
@@ -171,17 +176,31 @@ Public builds use Sparkle 2 for user-initiated updates. Automatic background
 checks are disabled: updates are requested from the app menu or Quick Settings.
 GitHub hosts `appcast.xml` and the signed release archives, so no separate
 update service or administration application is required. Public packaging
-requires `SPARKLE_PUBLIC_ED_KEY`; `SPARKLE_FEED_URL` defaults to this
-repository's raw `appcast.xml` URL.
+requires `SPARKLE_PUBLIC_ED_KEY` and an explicit HTTPS `SPARKLE_FEED_URL`.
+`publish_release.command` derives that URL from the required
+`LOCAL_STRAY_RELEASE_REPOSITORY` when it has not been supplied.
 
 The runtime updates atomically with the app without bundling model weights.
 `release_app.command` builds the locked relocatable payload automatically from
-a sibling `qwen-prime-runtime` checkout. Set `QWEN_PRIME_RUNTIME_SOURCE` to an
+a sibling `LocalStrayRuntime` checkout. Set `LOCAL_STRAY_RUNTIME_SOURCE` to an
 explicit verified checkout when it lives elsewhere; packaging fails rather than
 silently selecting a legacy harness checkout. To package an existing payload, set
-`QWEN_PRIME_EMBEDDED_RUNTIME`; the payload is copied to
-`QwenPrime.app/Contents/Resources/QwenPrimeRuntime`; user model paths remain in
+`LOCAL_STRAY_EMBEDDED_RUNTIME`; the payload is copied to
+`LocalStray.app/Contents/Resources/LocalStrayRuntime`; user model paths remain in
 Application Support and survive app replacement.
+
+The first Local Stray launch imports Qwen Prime conversations, runtime
+configuration, skills, and supported preferences only when their Local Stray
+destinations are absent. It never deletes or moves the original data. The new
+default workspace is `~/local-stray-sandbox`. On first launch, Local Stray
+non-destructively copies missing contents from `~/prime-sandbox` and leaves the
+original folder untouched; it can also still be selected manually.
+
+Because Local Stray has a new app bundle name and bundle identifier, existing
+Qwen Prime installations do not update in place through Sparkle. Install the
+first Local Stray release as a fresh app; it performs the one-time local import
+on launch. A Qwen Prime bridge release would require control of its old release
+feed and must retain its legacy bundle identity.
 
 After the one-time Developer ID, notarization, and Sparkle signing credentials
 are configured, a release is published locally with:
@@ -190,9 +209,10 @@ are configured, a release is published locally with:
 ./publish_release.command 1.1.1
 ```
 
-The command refuses a dirty worktree, builds and notarizes the app, signs the
-Sparkle update from an injected private key, commits the updated appcast, tags
-and pushes the release, and uploads the archive and checksum to GitHub Releases.
+The command refuses a dirty worktree and any branch other than `main`, builds
+and notarizes the app, signs the Sparkle update with its Keychain account,
+commits the updated appcast, tags and pushes the release, and uploads the
+archive and checksum to GitHub Releases.
 Run `./release_preflight.command 1.1.1` at any time to verify the non-secret
 release prerequisites. It lists Apple, Sparkle, and GitHub credentials as one
 deferred final checkpoint without reading or printing their values.
@@ -201,7 +221,7 @@ See [`docs/PUBLISHING.md`](docs/PUBLISHING.md) for the initial two-repository,
 two-model publication order and the shorter recurring update workflow.
 
 Measured throughput depends on hardware, prompt shape, thermals, context length,
-and draft acceptance. On the development M4 Max, the downloaded Qwen Prime 1.1.1
+and draft acceptance. On the development M4 Max, the downloaded Local Stray 1.1.1
 application measured 29.38 server tokens/second with 55.9% draft acceptance on
 a 256-token Swift task using the hybrid target. This is an observation, not a
 guaranteed minimum.
@@ -214,13 +234,13 @@ Agent access is confined to the user-authorized folder, rejects symlink escapes
 and sensitive paths, and requires approval for text mutations and process
 execution. The generic argv-only process helper is separately App-Sandboxed,
 network-disabled, bounded in time and output, and limited to the authorized
-workspace plus trusted system tool locations. Qwen Prime does not interpret
+workspace plus trusted system tool locations. Local Stray does not interpret
 shell command strings. MCP connections are restricted to loopback Streamable
 HTTP endpoints, share no workspace roots automatically, and require approval
 before every external tool call.
 
 ## License and attribution
 
-Qwen Prime is MIT licensed. See `THIRD_PARTY_NOTICES.md` for companion component
-and model attribution. Qwen Prime is an independent project and is not affiliated
+Local Stray is MIT licensed. See `THIRD_PARTY_NOTICES.md` for companion component
+and model attribution. Local Stray is an independent project and is not affiliated
 with or endorsed by the Qwen team, Apple, MLX, DFlash, or Prime Intellect.

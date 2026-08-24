@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
-        <title>Qwen Prime Updates</title>
-        <link>https://github.com/adriancmurray/QwenPrime/releases</link>
-        <description>Signed Qwen Prime releases.</description>
+        <title>Local Stray Updates</title>
+        <link>https://github.com/titofebus/LocalStray/releases</link>
+        <description>Signed Local Stray releases.</description>
         <language>en</language>
         <item>
             <title>1.1.4</title>

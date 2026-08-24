@@ -1,6 +1,6 @@
 # UI and UX Architecture
 
-Qwen Prime keeps user-interface policy in a small set of shared models and
+Local Stray keeps user-interface policy in a small set of shared models and
 renderers. Views consume those sources of truth instead of redefining colors,
 shortcuts, availability rules, formatting, or destructive-action behavior.
 

@@ -2,20 +2,22 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -n "${QWEN_PRIME_RUNTIME_SOURCE:-}" ]; then
-    RUNTIME_SOURCE="$QWEN_PRIME_RUNTIME_SOURCE"
+if [ -n "${LOCAL_STRAY_RUNTIME_SOURCE:-}" ]; then
+    RUNTIME_SOURCE="$LOCAL_STRAY_RUNTIME_SOURCE"
+elif [ -x "$PROJECT_DIR/../LocalStrayRuntime/scripts/install_qwen_prime_runtime.command" ]; then
+    RUNTIME_SOURCE="$PROJECT_DIR/../LocalStrayRuntime"
 elif [ -x "$PROJECT_DIR/../qwen-prime-runtime/scripts/install_qwen_prime_runtime.command" ]; then
     RUNTIME_SOURCE="$PROJECT_DIR/../qwen-prime-runtime"
 else
-    echo "Companion qwen-prime-runtime checkout not found." >&2
-    echo "Set QWEN_PRIME_RUNTIME_SOURCE to the verified runtime checkout." >&2
+    echo "LocalStrayRuntime mirror or compatible runtime checkout not found." >&2
+    echo "Set LOCAL_STRAY_RUNTIME_SOURCE to the verified runtime checkout." >&2
     exit 1
 fi
-TARGET_MODEL="${1:-${QWEN_PRIME_TARGET_MODEL:-}}"
-DRAFT_MODEL="${2:-${QWEN_PRIME_DRAFT_MODEL:-}}"
+TARGET_MODEL="${1:-${LOCAL_STRAY_TARGET_MODEL:-}}"
+DRAFT_MODEL="${2:-${LOCAL_STRAY_DRAFT_MODEL:-}}"
 
 if [ "$(uname -m)" != "arm64" ]; then
-    echo "Qwen Prime and MLX require Apple Silicon." >&2
+    echo "Local Stray and MLX require Apple Silicon." >&2
     exit 1
 fi
 if [ -z "$TARGET_MODEL" ] || [ -z "$DRAFT_MODEL" ]; then

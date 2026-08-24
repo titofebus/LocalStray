@@ -1,23 +1,35 @@
-# Publishing Qwen Prime
+# Publishing Local Stray
 
-Qwen Prime has four required, independently reviewable release units:
+Local Stray has four required, independently reviewable release units:
 
 1. `adrianmurray/Qwen3.8-27B-Hybrid-Q8Q4` on Hugging Face: recommended target weights.
 2. `adrianmurray/Qwen3.8-27B-MTP-MLX-6bit` on Hugging Face: matching native-MTP draft.
-3. `adriancmurray/qwen-prime-runtime` on GitHub: runtime source and wheel.
-4. `adriancmurray/QwenPrime` on GitHub: source, Sparkle appcast, and notarized app archive.
+3. `titofebus/LocalStrayRuntime` on GitHub: owner-controlled runtime mirror and
+   wheel source, seeded from `adriancmurray/qwen-prime-runtime`.
+4. `LOCAL_STRAY_RELEASE_REPOSITORY` on GitHub: the owner-selected canonical
+   Local Stray source, Sparkle appcast, and notarized app archive.
 
 `adrianmurray/Qwen3.8-27B-MLX-6bit` remains available as the uniform 6-bit
 baseline and optional target.
 
 The model repositories are not downloaded automatically. The app asks the user
 to choose both folders and stores only their paths in
-`~/Library/Application Support/QwenPrime/runtime.json`. The Python runtime is
+`~/Library/Application Support/LocalStray/runtime.json`. The Python runtime is
 embedded in every public app archive and therefore updates with Sparkle.
+
+## Runtime mirror
+
+[`titofebus/LocalStrayRuntime`](https://github.com/titofebus/LocalStrayRuntime)
+is the Local Stray-owned runtime source. It was seeded from
+[`adriancmurray/qwen-prime-runtime`](https://github.com/adriancmurray/qwen-prime-runtime),
+which remains the upstream to monitor. Before taking an upstream change, fetch
+it, review the diff and licenses, run the runtime tests, fast-forward the mirror,
+and push the reviewed result and tags. The mirror's `UPSTREAM.md` records the
+seed revision and repeatable synchronization commands.
 
 ## Non-secret preflight
 
-From the QwenPrime checkout:
+From the Local Stray checkout:
 
 ```bash
 swift package resolve
@@ -33,8 +45,8 @@ From the runtime checkout:
 uv sync --extra dev
 uv run pytest
 uv build --wheel
-./scripts/build_embedded_runtime.command /private/tmp/QwenPrimeRuntime
-/private/tmp/QwenPrimeRuntime/bin/qwen-prime-runtime --help
+./scripts/build_embedded_runtime.command /private/tmp/LocalStrayRuntime
+/private/tmp/LocalStrayRuntime/bin/qwen-prime-runtime --help
 ```
 
 Move the payload before the final command when testing relocation. Run `doctor`
@@ -50,23 +62,38 @@ release command:
   and `NOTARY_APP_PASSWORD`. The latter can be injected command-scoped from an
   existing Vault app-specific password without creating a Keychain profile.
 - `SPARKLE_PUBLIC_ED_KEY`: the public Sparkle Ed25519 key embedded in the app.
-- `SPARKLE_PRIVATE_KEY`: the matching private seed used only by
-  `generate_appcast --ed-key-file -`.
+- `SPARKLE_ACCOUNT` (default `app.dech.localstray`): the Keychain account used
+  by Sparkle to read the matching private signing seed.
+- `LOCAL_STRAY_RELEASE_REPOSITORY`: the canonical GitHub `owner/repository`.
+- `SPARKLE_FEED_URL`: the canonical HTTPS appcast URL. The publisher derives
+  `https://raw.githubusercontent.com/<owner>/<repository>/main/appcast.xml`
+  when it is omitted.
 - GitHub CLI authorization with repository and release access.
 - `HF_TOKEN` with write access to the model repositories.
 
 Do not put private values in shell history, source files, app resources,
-appcasts, logs, or GitHub Actions output. Qwen Prime's publishing script accepts
-the Sparkle private key through standard input and does not create a key file.
+appcasts, logs, or GitHub Actions output. Before the first Local Stray release,
+import the existing Sparkle signing seed into the Local Stray Keychain account
+only when its signing continuity is desired. It does not make Qwen Prime update
+in place: Sparkle cannot replace the legacy `QwenPrime.app` and
+`app.dech.qwenprime` with `LocalStray.app` and `app.dech.localstray`.
+
+The first Local Stray release is therefore a fresh installation. It imports the
+supported local data on first launch without deleting Qwen Prime data. A bridge
+release is a separate, owner-authorized Qwen Prime publication: it requires
+control of the old feed and a package retaining the old bundle identity. Do not
+claim or ship that bridge from this repository without that authorization.
 
 ## Initial publication order
 
 1. Create the two Hugging Face model repositories and upload each verified
    directory with `hf upload-large-folder`.
-2. Publish the curated runtime source and wheel to
+2. Maintain the curated runtime source and wheel in
+   `titofebus/LocalStrayRuntime`, syncing reviewed updates from
    `adriancmurray/qwen-prime-runtime`.
-3. Publish the prepared QwenPrime source.
-4. Inject the Apple, Sparkle, and GitHub values and run:
+3. Publish the prepared Local Stray source at the owner-selected canonical
+   repository, then configure its GitHub redirect strategy if applicable.
+4. Inject the Apple, Sparkle, GitHub, and canonical repository values and run:
 
    ```bash
    ./publish_release.command 1.1.1
@@ -76,6 +103,12 @@ The command requires committed source, builds the locked embedded runtime,
 signs the complete app with hardened runtime, notarizes and staples it, creates
 the archive and checksum, signs the Sparkle appcast, commits that appcast, tags
 the release, pushes it, and creates the GitHub Release.
+
+Existing Qwen Prime appcast entries retain their original links, archive names,
+and signatures. The channel-level link points to the canonical Local Stray
+release page. The publisher preserves all prior entries while it adds new Local
+Stray releases and reasserts that channel link in its temporary copy before
+Sparkle signs the new item.
 
 ## Future app and runtime updates
 

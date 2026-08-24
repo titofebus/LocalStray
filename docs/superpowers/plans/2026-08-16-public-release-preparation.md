@@ -1,10 +1,10 @@
-# Qwen Prime Public Release Preparation Implementation Plan
+# Local Stray Public Release Preparation Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Produce a self-contained, publicly distributable Qwen Prime app whose inference runtime updates with the app while user-supplied Qwen3.8 model weights remain external and persistent.
+**Goal:** Produce a self-contained, publicly distributable Local Stray app whose inference runtime updates with the app while user-supplied Qwen3.8 model weights remain external and persistent.
 
-**Architecture:** The app bundle owns a relocatable CPython runtime and locked `qwen-prime-runtime` environment under `Contents/Resources/QwenPrimeRuntime`. A small Swift service owns the user model-path configuration in Application Support and the Engine settings UI validates both artifacts before starting the loopback server. Sparkle, Developer ID signing, notarization, and GitHub Releases remain a final credentialed publication boundary.
+**Architecture:** The app bundle owns a relocatable CPython runtime and locked `qwen-prime-runtime` environment under `Contents/Resources/LocalStrayRuntime`. A small Swift service owns the user model-path configuration in Application Support and the Engine settings UI validates both artifacts before starting the loopback server. Sparkle, Developer ID signing, notarization, and GitHub Releases remain a final credentialed publication boundary.
 
 **Tech Stack:** Swift 6, SwiftUI, Swift Package Manager, Sparkle 2.9.3, CPython 3.12, uv, MLX, dflash-mlx, GitHub Releases.
 
@@ -18,17 +18,17 @@
 - Defer all credentialed operations to one final checkpoint.
 - Preserve the existing approved work in the current shared checkout.
 
-Paths below use `$QWEN_PRIME_APP_ROOT` for the QwenPrime checkout and
-`$QWEN_PRIME_RUNTIME_ROOT` for the qwen-prime-runtime checkout.
+Paths below use `$LOCAL_STRAY_APP_ROOT` for the Local Stray checkout and
+`$LOCAL_STRAY_RUNTIME_ROOT` for the qwen-prime-runtime checkout.
 
 ---
 
 ### Task 1: Relocatable runtime payload
 
 **Files:**
-- Create: `$QWEN_PRIME_RUNTIME_ROOT/scripts/build_embedded_runtime.command`
-- Modify: `$QWEN_PRIME_RUNTIME_ROOT/docs/RELEASE.md`
-- Test: `$QWEN_PRIME_RUNTIME_ROOT/tests/test_embedded_runtime.py`
+- Create: `$LOCAL_STRAY_RUNTIME_ROOT/scripts/build_embedded_runtime.command`
+- Modify: `$LOCAL_STRAY_RUNTIME_ROOT/docs/RELEASE.md`
+- Test: `$LOCAL_STRAY_RUNTIME_ROOT/tests/test_embedded_runtime.py`
 
 **Interfaces:**
 - Consumes: the locked `qwen-prime-runtime` project and uv-managed CPython 3.12.
@@ -43,11 +43,11 @@ Paths below use `$QWEN_PRIME_APP_ROOT` for the QwenPrime checkout and
 ### Task 2: Model setup and validation
 
 **Files:**
-- Create: `$QWEN_PRIME_APP_ROOT/Sources/QwenPrime/Models/RuntimeConfiguration.swift`
-- Create: `$QWEN_PRIME_APP_ROOT/Sources/QwenPrime/Services/RuntimeConfigurationService.swift`
-- Modify: `$QWEN_PRIME_APP_ROOT/Sources/QwenPrime/ViewModels/AppState.swift`
-- Modify: `$QWEN_PRIME_APP_ROOT/Sources/QwenPrime/Views/Settings/SettingsView.swift`
-- Test: `$QWEN_PRIME_APP_ROOT/Tests/QwenPrimeTests/QwenPrimeTests.swift`
+- Create: `$LOCAL_STRAY_APP_ROOT/Sources/LocalStray/Models/RuntimeConfiguration.swift`
+- Create: `$LOCAL_STRAY_APP_ROOT/Sources/LocalStray/Services/RuntimeConfigurationService.swift`
+- Modify: `$LOCAL_STRAY_APP_ROOT/Sources/LocalStray/ViewModels/AppState.swift`
+- Modify: `$LOCAL_STRAY_APP_ROOT/Sources/LocalStray/Views/Settings/SettingsView.swift`
+- Test: `$LOCAL_STRAY_APP_ROOT/Tests/LocalStrayTests/LocalStrayTests.swift`
 
 **Interfaces:**
 - Produces: `RuntimeConfiguration(targetModelPath:draftModelPath:)`, atomic load/save, directory selection, and `qwen-prime-runtime doctor` validation surfaced in Engine settings.
@@ -63,26 +63,26 @@ Paths below use `$QWEN_PRIME_APP_ROOT` for the QwenPrime checkout and
 ### Task 3: App packaging integration
 
 **Files:**
-- Modify: `$QWEN_PRIME_APP_ROOT/package_app.sh`
-- Create: `$QWEN_PRIME_APP_ROOT/build_embedded_runtime.command`
-- Modify: `$QWEN_PRIME_APP_ROOT/README.md`
+- Modify: `$LOCAL_STRAY_APP_ROOT/package_app.sh`
+- Create: `$LOCAL_STRAY_APP_ROOT/build_embedded_runtime.command`
+- Modify: `$LOCAL_STRAY_APP_ROOT/README.md`
 
 **Interfaces:**
 - Produces: a packaged app containing the versioned runtime payload and no model weights.
 
 - [ ] Add package preflight checks for runtime launcher, Python executable, architecture, and forbidden model artifacts.
 - [ ] Build the runtime through the companion checkout and package it by default for release builds.
-- [ ] Verify bundle-relative execution from `QwenPrime.app/Contents/Resources/QwenPrimeRuntime`.
+- [ ] Verify bundle-relative execution from `LocalStray.app/Contents/Resources/LocalStrayRuntime`.
 - [ ] Document source builds, runtime-only builds, and public release builds distinctly.
 
 ### Task 4: Credential-free release hardening
 
 **Files:**
-- Modify: `$QWEN_PRIME_APP_ROOT/release_app.command`
-- Modify: `$QWEN_PRIME_APP_ROOT/publish_release.command`
-- Create: `$QWEN_PRIME_APP_ROOT/release_preflight.command`
-- Modify: `$QWEN_PRIME_APP_ROOT/README.md`
-- Modify: `$QWEN_PRIME_APP_ROOT/THIRD_PARTY_NOTICES.md`
+- Modify: `$LOCAL_STRAY_APP_ROOT/release_app.command`
+- Modify: `$LOCAL_STRAY_APP_ROOT/publish_release.command`
+- Create: `$LOCAL_STRAY_APP_ROOT/release_preflight.command`
+- Modify: `$LOCAL_STRAY_APP_ROOT/README.md`
+- Modify: `$LOCAL_STRAY_APP_ROOT/THIRD_PARTY_NOTICES.md`
 
 **Interfaces:**
 - Produces: a read-only preflight, a signed/notarized archive command, and an explicit publishing command that accepts credentials only through environment injection.

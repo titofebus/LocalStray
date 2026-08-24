@@ -8,10 +8,10 @@ case "$MODE" in
     *) echo "Usage: $0 [ranked|full|report]" >&2; exit 2 ;;
 esac
 
-APP_PATH="$PROJECT_DIR/QwenPrime.app"
-EXECUTABLE="$APP_PATH/Contents/MacOS/QwenPrime"
+APP_PATH="$PROJECT_DIR/LocalStray.app"
+EXECUTABLE="$APP_PATH/Contents/MacOS/LocalStray"
 USER_TEMP_DIR="${TMPDIR:-$(/usr/bin/getconf DARWIN_USER_TEMP_DIR)}"
-RESULT_PATH="${USER_TEMP_DIR%/}/qwen-prime-tool-routing-latest.log"
+RESULT_PATH="${USER_TEMP_DIR%/}/local-stray-tool-routing-latest.log"
 
 archive_result() {
     [[ -f "$RESULT_PATH" ]] || return 0
@@ -19,13 +19,13 @@ archive_result() {
     result_mode="$(/usr/bin/sed -n 's/.*mode=\([^ ]*\).*/\1/p' "$RESULT_PATH")"
     case "$result_mode" in
         ranked|full)
-            /bin/cp "$RESULT_PATH" "/private/tmp/qwen-prime-tool-routing-$result_mode.log"
+            /bin/cp "$RESULT_PATH" "/private/tmp/local-stray-tool-routing-$result_mode.log"
             ;;
     esac
 }
 
 if [[ "$MODE" == "report" ]]; then
-    for result in /private/tmp/qwen-prime-tool-routing-{full,ranked}.log; do
+    for result in /private/tmp/local-stray-tool-routing-{full,ranked}.log; do
         if [[ -f "$result" ]]; then
             /bin/cat "$result"
             echo
@@ -40,7 +40,7 @@ if [[ ! -x "$EXECUTABLE" ]]; then
     exit 1
 fi
 
-/usr/bin/defaults write app.dech.qwenprime AgentToolRoutingMode -string "$MODE"
+/usr/bin/defaults write app.dech.localstray AgentToolRoutingMode -string "$MODE"
 rm -f "$RESULT_PATH"
 
 if ! /usr/sbin/lsof -t -- "$EXECUTABLE" >/dev/null 2>&1; then

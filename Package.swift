@@ -2,23 +2,23 @@
 import PackageDescription
 
 let package = Package(
-    name: "QwenPrime",
+    name: "LocalStray",
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14)
     ],
     products: [
         .executable(
-            name: "QwenPrime",
-            targets: ["QwenPrime"]
+            name: "LocalStray",
+            targets: ["LocalStray"]
         ),
         .executable(
-            name: "QwenPrimeCommandHelper",
-            targets: ["QwenPrimeCommandHelper"]
+            name: "LocalStrayCommandHelper",
+            targets: ["LocalStrayCommandHelper"]
         ),
         .library(
-            name: "QwenPrimeCommandProtocol",
-            targets: ["QwenPrimeCommandProtocol"]
+            name: "LocalStrayCommandProtocol",
+            targets: ["LocalStrayCommandProtocol"]
         )
     ],
     dependencies: [
@@ -37,15 +37,15 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "QwenPrime",
+            name: "LocalStray",
             dependencies: [
-                "QwenPrimeCommandProtocol",
-                "QwenPrimeCommandCore",
+                "LocalStrayCommandProtocol",
+                "LocalStrayCommandCore",
                 .product(name: "MCP", package: "swift-sdk"),
                 .product(name: "SwiftMCPStore", package: "swift-mcp-router"),
                 .product(name: "Sparkle", package: "Sparkle")
             ],
-            path: "Sources/QwenPrime",
+            path: "Sources/LocalStray",
             resources: [
                 .process("../../Resources")
             ],
@@ -54,32 +54,32 @@ let package = Package(
             ]
         ),
         .target(
-            name: "QwenPrimeCommandProtocol",
-            path: "Sources/QwenPrimeCommandProtocol",
+            name: "LocalStrayCommandProtocol",
+            path: "Sources/LocalStrayCommandProtocol",
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency")
             ]
         ),
         .target(
-            name: "QwenPrimeCommandCore",
-            dependencies: ["QwenPrimeCommandProtocol"],
-            path: "Sources/QwenPrimeCommandCore",
+            name: "LocalStrayCommandCore",
+            dependencies: ["LocalStrayCommandProtocol"],
+            path: "Sources/LocalStrayCommandCore",
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency")
             ]
         ),
         .executableTarget(
-            name: "QwenPrimeCommandHelper",
-            dependencies: ["QwenPrimeCommandProtocol", "QwenPrimeCommandCore"],
-            path: "Sources/QwenPrimeCommandHelper",
+            name: "LocalStrayCommandHelper",
+            dependencies: ["LocalStrayCommandProtocol", "LocalStrayCommandCore"],
+            path: "Sources/LocalStrayCommandHelper",
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency")
             ]
         ),
         .testTarget(
-            name: "QwenPrimeTests",
-            dependencies: ["QwenPrime"],
-            path: "Tests/QwenPrimeTests",
+            name: "LocalStrayTests",
+            dependencies: ["LocalStray"],
+            path: "Tests/LocalStrayTests",
             linkerSettings: [
                 .unsafeFlags([
                     "-Xlinker", "-rpath",
@@ -88,9 +88,9 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "QwenPrimeCommandCoreTests",
-            dependencies: ["QwenPrimeCommandProtocol", "QwenPrimeCommandCore"],
-            path: "Tests/QwenPrimeCommandCoreTests"
+            name: "LocalStrayCommandCoreTests",
+            dependencies: ["LocalStrayCommandProtocol", "LocalStrayCommandCore"],
+            path: "Tests/LocalStrayCommandCoreTests"
         )
     ]
 )

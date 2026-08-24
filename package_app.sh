@@ -4,27 +4,27 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 
-VERSION="${QWEN_PRIME_VERSION:-1.1.1}"
-BUILD_NUMBER="${QWEN_PRIME_BUILD_NUMBER:-1}"
-BUILD_SYSTEM="${QWEN_PRIME_SWIFT_BUILD_SYSTEM:-native}"
+VERSION="${LOCAL_STRAY_VERSION:-1.1.1}"
+BUILD_NUMBER="${LOCAL_STRAY_BUILD_NUMBER:-1}"
+BUILD_SYSTEM="${LOCAL_STRAY_SWIFT_BUILD_SYSTEM:-native}"
 if [[ ! "$VERSION" =~ ^[0-9A-Za-z.-]+$ ]] || [[ ! "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
-    echo "Invalid Qwen Prime version or build number." >&2
+    echo "Invalid Local Stray version or build number." >&2
     exit 1
 fi
 if [[ "$BUILD_SYSTEM" != "swiftbuild" && "$BUILD_SYSTEM" != "native" ]]; then
-    echo "QWEN_PRIME_SWIFT_BUILD_SYSTEM must be swiftbuild or native." >&2
+    echo "LOCAL_STRAY_SWIFT_BUILD_SYSTEM must be swiftbuild or native." >&2
     exit 1
 fi
 BUILD_ARGUMENTS=(-c release --build-system "$BUILD_SYSTEM")
-if [[ "${QWEN_PRIME_DISABLE_SWIFTPM_SANDBOX:-0}" == "1" ]]; then
+if [[ "${LOCAL_STRAY_DISABLE_SWIFTPM_SANDBOX:-0}" == "1" ]]; then
     BUILD_ARGUMENTS+=(--disable-sandbox -Xswiftc -disable-sandbox)
 fi
 
-echo "Building QwenPrime in release mode..."
+echo "Building LocalStray in release mode..."
 swift build "${BUILD_ARGUMENTS[@]}"
-swift build "${BUILD_ARGUMENTS[@]}" --product QwenPrimeCommandHelper
+swift build "${BUILD_ARGUMENTS[@]}" --product LocalStrayCommandHelper
 
-APP_DIR="$PROJECT_DIR/QwenPrime.app"
+APP_DIR="$PROJECT_DIR/LocalStray.app"
 CONTENTS="$APP_DIR/Contents"
 MACOS="$CONTENTS/MacOS"
 RESOURCES="$CONTENTS/Resources"
@@ -34,13 +34,13 @@ XPC_SERVICES="$CONTENTS/XPCServices"
 refuse_live_bundle_processes() {
     local process_path pid
     for process_path in \
-        "$APP_DIR/Contents/MacOS/QwenPrime" \
-        "$APP_DIR/Contents/Resources/QwenPrimeRuntime/python/bin/python3.12"; do
+        "$APP_DIR/Contents/MacOS/LocalStray" \
+        "$APP_DIR/Contents/Resources/LocalStrayRuntime/python/bin/python3.12"; do
         [[ -e "$process_path" ]] || continue
         pid="$(/usr/sbin/lsof -t -- "$process_path" 2>/dev/null | head -1 || true)"
         if [[ -n "$pid" ]]; then
-            echo "Refusing to replace QwenPrime.app while PID $pid is using $process_path." >&2
-            echo "Quit Qwen Prime and stop its managed runtime before packaging." >&2
+            echo "Refusing to replace LocalStray.app while PID $pid is using $process_path." >&2
+            echo "Quit Local Stray and stop its managed runtime before packaging." >&2
             exit 1
         fi
     done
@@ -52,25 +52,25 @@ rm -rf "$APP_DIR"
 mkdir -p "$MACOS" "$RESOURCES" "$FRAMEWORKS" "$XPC_SERVICES"
 
 BIN_DIR="$(swift build "${BUILD_ARGUMENTS[@]}" --show-bin-path)"
-install -m 755 "$BIN_DIR/QwenPrime" "$MACOS/QwenPrime"
-install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS/QwenPrime"
+install -m 755 "$BIN_DIR/LocalStray" "$MACOS/LocalStray"
+install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS/LocalStray"
 
-COMMAND_HELPER="$XPC_SERVICES/QwenPrimeCommandHelper.xpc"
+COMMAND_HELPER="$XPC_SERVICES/LocalStrayCommandHelper.xpc"
 COMMAND_HELPER_CONTENTS="$COMMAND_HELPER/Contents"
 COMMAND_HELPER_MACOS="$COMMAND_HELPER_CONTENTS/MacOS"
 mkdir -p "$COMMAND_HELPER_MACOS"
-install -m 755 "$BIN_DIR/QwenPrimeCommandHelper" \
-    "$COMMAND_HELPER_MACOS/QwenPrimeCommandHelper"
+install -m 755 "$BIN_DIR/LocalStrayCommandHelper" \
+    "$COMMAND_HELPER_MACOS/LocalStrayCommandHelper"
 cat > "$COMMAND_HELPER_CONTENTS/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>CFBundleDevelopmentRegion</key><string>en</string>
-    <key>CFBundleExecutable</key><string>QwenPrimeCommandHelper</string>
-    <key>CFBundleIdentifier</key><string>app.dech.qwenprime.command-helper</string>
+    <key>CFBundleExecutable</key><string>LocalStrayCommandHelper</string>
+    <key>CFBundleIdentifier</key><string>app.dech.localstray.command-helper</string>
     <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
-    <key>CFBundleName</key><string>Qwen Prime Command Helper</string>
+    <key>CFBundleName</key><string>Local Stray Command Helper</string>
     <key>CFBundlePackageType</key><string>XPC!</string>
     <key>CFBundleShortVersionString</key><string>$VERSION</string>
     <key>CFBundleVersion</key><string>$BUILD_NUMBER</string>
@@ -102,14 +102,14 @@ ditto "$SPARKLE_FRAMEWORK" "$FRAMEWORKS/Sparkle.framework"
 if [ -f "$PROJECT_DIR/Resources/AppIcon.icns" ]; then
     cp "$PROJECT_DIR/Resources/AppIcon.icns" "$RESOURCES/AppIcon.icns"
 fi
-if [ -d "$BIN_DIR/QwenPrime_QwenPrime.bundle" ]; then
-    cp -R "$BIN_DIR/QwenPrime_QwenPrime.bundle" "$RESOURCES/"
+if [ -d "$BIN_DIR/LocalStray_LocalStray.bundle" ]; then
+    cp -R "$BIN_DIR/LocalStray_LocalStray.bundle" "$RESOURCES/"
 fi
 cp "$PROJECT_DIR/LICENSE" "$RESOURCES/LICENSE"
 cp "$PROJECT_DIR/THIRD_PARTY_NOTICES.md" "$RESOURCES/THIRD_PARTY_NOTICES.md"
 
-if [ -n "${QWEN_PRIME_EMBEDDED_RUNTIME:-}" ]; then
-    RUNTIME_SOURCE="$QWEN_PRIME_EMBEDDED_RUNTIME"
+if [ -n "${LOCAL_STRAY_EMBEDDED_RUNTIME:-}" ]; then
+    RUNTIME_SOURCE="$LOCAL_STRAY_EMBEDDED_RUNTIME"
     if [ ! -x "$RUNTIME_SOURCE/bin/qwen-prime-runtime" ]; then
         echo "Embedded runtime must contain bin/qwen-prime-runtime." >&2
         exit 1
@@ -123,10 +123,10 @@ if [ -n "${QWEN_PRIME_EMBEDDED_RUNTIME:-}" ]; then
         exit 1
     fi
     if find "$RUNTIME_SOURCE" -type f \( -name '*.safetensors' -o -name '*.gguf' -o -name '*.mlx' \) -print -quit | grep -q .; then
-        echo "Refusing to package model weights inside Qwen Prime." >&2
+        echo "Refusing to package model weights inside Local Stray." >&2
         exit 1
     fi
-    ditto "$RUNTIME_SOURCE" "$RESOURCES/QwenPrimeRuntime"
+    ditto "$RUNTIME_SOURCE" "$RESOURCES/LocalStrayRuntime"
 fi
 
 cat > "$CONTENTS/Info.plist" <<EOF
@@ -135,12 +135,12 @@ cat > "$CONTENTS/Info.plist" <<EOF
 <plist version="1.0">
 <dict>
     <key>CFBundleDevelopmentRegion</key><string>en</string>
-    <key>CFBundleExecutable</key><string>QwenPrime</string>
+    <key>CFBundleExecutable</key><string>LocalStray</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
-    <key>CFBundleIdentifier</key><string>app.dech.qwenprime</string>
+    <key>CFBundleIdentifier</key><string>app.dech.localstray</string>
     <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
-    <key>CFBundleName</key><string>Qwen Prime</string>
-    <key>CFBundleDisplayName</key><string>Qwen Prime</string>
+    <key>CFBundleName</key><string>Local Stray</string>
+    <key>CFBundleDisplayName</key><string>Local Stray</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>$VERSION</string>
     <key>CFBundleVersion</key><string>$BUILD_NUMBER</string>
@@ -154,7 +154,10 @@ cat > "$CONTENTS/Info.plist" <<EOF
 EOF
 
 if [ -n "${SPARKLE_PUBLIC_ED_KEY:-}" ]; then
-    SPARKLE_FEED_URL="${SPARKLE_FEED_URL:-https://raw.githubusercontent.com/adriancmurray/QwenPrime/main/appcast.xml}"
+    if [[ -z "${SPARKLE_FEED_URL:-}" || "$SPARKLE_FEED_URL" != https://* ]]; then
+        echo "Set SPARKLE_FEED_URL to the canonical HTTPS Local Stray appcast." >&2
+        exit 1
+    fi
     /usr/libexec/PlistBuddy -c "Add :SUFeedURL string $SPARKLE_FEED_URL" "$CONTENTS/Info.plist"
     /usr/libexec/PlistBuddy -c "Add :SUPublicEDKey string $SPARKLE_PUBLIC_ED_KEY" "$CONTENTS/Info.plist"
     /usr/libexec/PlistBuddy -c "Add :SUEnableAutomaticChecks bool false" "$CONTENTS/Info.plist"
@@ -162,13 +165,13 @@ fi
 
 plutil -lint "$CONTENTS/Info.plist"
 if [ -n "${DEVELOPER_ID_APPLICATION:-}" ]; then
-    if [ -d "$RESOURCES/QwenPrimeRuntime" ]; then
+    if [ -d "$RESOURCES/LocalStrayRuntime" ]; then
         while IFS= read -r -d '' item; do
             if file "$item" | grep -q 'Mach-O'; then
                 codesign --force --options runtime --timestamp \
                     --sign "$DEVELOPER_ID_APPLICATION" "$item"
             fi
-        done < <(find "$RESOURCES/QwenPrimeRuntime" -type f -print0)
+        done < <(find "$RESOURCES/LocalStrayRuntime" -type f -print0)
     fi
 
     SPARKLE_VERSION="$FRAMEWORKS/Sparkle.framework/Versions/B"
@@ -186,13 +189,13 @@ if [ -n "${DEVELOPER_ID_APPLICATION:-}" ]; then
     codesign --force --options runtime --timestamp \
         --sign "$DEVELOPER_ID_APPLICATION" "$FRAMEWORKS/Sparkle.framework"
     codesign --force --options runtime --timestamp \
-        --entitlements "$PROJECT_DIR/Entitlements/QwenPrimeCommandHelper.entitlements" \
+        --entitlements "$PROJECT_DIR/Entitlements/LocalStrayCommandHelper.entitlements" \
         --sign "$DEVELOPER_ID_APPLICATION" "$COMMAND_HELPER"
     codesign --force --options runtime --timestamp \
         --sign "$DEVELOPER_ID_APPLICATION" "$APP_DIR"
 else
     codesign --force \
-        --entitlements "$PROJECT_DIR/Entitlements/QwenPrimeCommandHelper.entitlements" \
+        --entitlements "$PROJECT_DIR/Entitlements/LocalStrayCommandHelper.entitlements" \
         --sign - "$COMMAND_HELPER"
     codesign --force --sign - "$APP_DIR"
     echo "Created an ad-hoc signed development bundle with sandboxed command helper."
@@ -201,7 +204,7 @@ codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 codesign -d --entitlements :- "$COMMAND_HELPER" 2>&1 \
     | grep -q 'com.apple.security.app-sandbox'
 
-PACKAGED_RUNTIME="$RESOURCES/QwenPrimeRuntime"
+PACKAGED_RUNTIME="$RESOURCES/LocalStrayRuntime"
 if [ -d "$PACKAGED_RUNTIME" ]; then
     "$PACKAGED_RUNTIME/bin/qwen-prime-runtime" --help >/dev/null
     if find "$PACKAGED_RUNTIME" -type d -name __pycache__ -print -quit | grep -q .; then
@@ -211,4 +214,4 @@ if [ -d "$PACKAGED_RUNTIME" ]; then
     codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 fi
 
-echo "QwenPrime.app created at $APP_DIR"
+echo "LocalStray.app created at $APP_DIR"
