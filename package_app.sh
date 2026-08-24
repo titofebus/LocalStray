@@ -24,7 +24,8 @@ echo "Building LocalStray in release mode..."
 swift build "${BUILD_ARGUMENTS[@]}"
 swift build "${BUILD_ARGUMENTS[@]}" --product LocalStrayCommandHelper
 
-APP_DIR="$PROJECT_DIR/LocalStray.app"
+APP_NAME="Local Stray"
+APP_DIR="$PROJECT_DIR/$APP_NAME.app"
 CONTENTS="$APP_DIR/Contents"
 MACOS="$CONTENTS/MacOS"
 RESOURCES="$CONTENTS/Resources"
@@ -39,7 +40,7 @@ refuse_live_bundle_processes() {
         [[ -e "$process_path" ]] || continue
         pid="$(/usr/sbin/lsof -t -- "$process_path" 2>/dev/null | head -1 || true)"
         if [[ -n "$pid" ]]; then
-            echo "Refusing to replace LocalStray.app while PID $pid is using $process_path." >&2
+            echo "Refusing to replace $APP_NAME.app while PID $pid is using $process_path." >&2
             echo "Quit Local Stray and stop its managed runtime before packaging." >&2
             exit 1
         fi
@@ -139,8 +140,8 @@ cat > "$CONTENTS/Info.plist" <<EOF
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundleIdentifier</key><string>app.dech.localstray</string>
     <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
-    <key>CFBundleName</key><string>Local Stray</string>
-    <key>CFBundleDisplayName</key><string>Local Stray</string>
+    <key>CFBundleName</key><string>$APP_NAME</string>
+    <key>CFBundleDisplayName</key><string>$APP_NAME</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>$VERSION</string>
     <key>CFBundleVersion</key><string>$BUILD_NUMBER</string>
@@ -214,4 +215,4 @@ if [ -d "$PACKAGED_RUNTIME" ]; then
     codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 fi
 
-echo "LocalStray.app created at $APP_DIR"
+echo "$APP_NAME.app created at $APP_DIR"

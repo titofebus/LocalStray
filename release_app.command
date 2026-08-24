@@ -2,6 +2,7 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_PATH="$PROJECT_DIR/Local Stray.app"
 VERSION="${LOCAL_STRAY_VERSION:-0.1.0}"
 if [ -z "${DEVELOPER_ID_APPLICATION:-}" ]; then
     echo "Set DEVELOPER_ID_APPLICATION to an installed Developer ID identity." >&2
@@ -20,7 +21,7 @@ fi
 LOCAL_STRAY_EMBEDDED_RUNTIME="$RUNTIME_PAYLOAD" "$PROJECT_DIR/package_app.sh"
 ARCHIVE="$PROJECT_DIR/LocalStray-v$VERSION-macOS.zip"
 rm -f "$ARCHIVE" "$ARCHIVE.sha256"
-ditto -c -k --keepParent "$PROJECT_DIR/LocalStray.app" "$ARCHIVE"
+ditto -c -k --keepParent "$APP_PATH" "$ARCHIVE"
 
 NOTARIZED=0
 if [ -n "${NOTARY_PROFILE:-}" ]; then
@@ -36,9 +37,9 @@ elif [ -n "${APPLE_ID:-}" ] && [ -n "${APPLE_TEAM_ID:-}" ] \
     NOTARIZED=1
 fi
 if [ "$NOTARIZED" = "1" ]; then
-    xcrun stapler staple "$PROJECT_DIR/LocalStray.app"
+    xcrun stapler staple "$APP_PATH"
     rm -f "$ARCHIVE"
-    ditto -c -k --keepParent "$PROJECT_DIR/LocalStray.app" "$ARCHIVE"
+    ditto -c -k --keepParent "$APP_PATH" "$ARCHIVE"
 fi
 
 ARCHIVE_NAME="$(basename "$ARCHIVE")"

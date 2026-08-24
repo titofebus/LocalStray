@@ -561,6 +561,8 @@ struct LocalStrayTests {
             )
         )
         #expect(packager.contains("LOCAL_STRAY_EMBEDDED_RUNTIME"))
+        #expect(packager.contains("APP_NAME=\"Local Stray\""))
+        #expect(packager.contains("APP_DIR=\"$PROJECT_DIR/$APP_NAME.app\""))
         #expect(packager.contains("<string>app.dech.localstray</string>"))
         #expect(!packager.contains("com.adrian.localstray"))
         #expect(packager.contains("@executable_path/../Frameworks"))
@@ -598,7 +600,9 @@ struct LocalStrayTests {
         let icon = sourceFile("Resources/AppIcon.icns")
 
         #expect(svg.contains("Local Stray app icon"))
-        #expect(svg.contains("speculative token nodes"))
+        #expect(svg.contains("pixel-cat silhouette"))
+        #expect(svg.contains("#39326F"))
+        #expect(svg.contains("#FFB481"))
         #expect(!svg.contains("<text"))
         #expect(FileManager.default.fileExists(atPath: icon.path))
     }

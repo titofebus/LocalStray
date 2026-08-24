@@ -77,7 +77,7 @@ Download both repositories to local folders, then select those folders in
 git clone <canonical-local-stray-repository-url>
 cd LocalStray
 ./package_app.sh
-open LocalStray.app
+open "Local Stray.app"
 ```
 
 The app connects only to `http://127.0.0.1:8000/v1` by default. Public builds
@@ -183,7 +183,7 @@ a sibling `LocalStrayRuntime` checkout. Set `LOCAL_STRAY_RUNTIME_SOURCE` to an
 explicit verified checkout when it lives elsewhere; packaging fails rather than
 silently selecting a legacy harness checkout. To package an existing payload, set
 `LOCAL_STRAY_EMBEDDED_RUNTIME`; the payload is copied to
-`LocalStray.app/Contents/Resources/LocalStrayRuntime`; user model paths remain in
+`Local Stray.app/Contents/Resources/LocalStrayRuntime`; user model paths remain in
 Application Support and survive app replacement.
 
 The default workspace is `~/stray-sandbox`.

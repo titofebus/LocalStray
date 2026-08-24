@@ -8,7 +8,7 @@ case "$MODE" in
     *) echo "Usage: $0 [ranked|full|report]" >&2; exit 2 ;;
 esac
 
-APP_PATH="$PROJECT_DIR/LocalStray.app"
+APP_PATH="$PROJECT_DIR/Local Stray.app"
 EXECUTABLE="$APP_PATH/Contents/MacOS/LocalStray"
 USER_TEMP_DIR="${TMPDIR:-$(/usr/bin/getconf DARWIN_USER_TEMP_DIR)}"
 RESULT_PATH="${USER_TEMP_DIR%/}/local-stray-tool-routing-latest.log"
