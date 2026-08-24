@@ -22,22 +22,19 @@ public struct AgentSkillService: Sendable {
             ),
             source: .workspace
         )
-        let currentWorkspaceSkillNames = Set(
-            workspaceSkills.map { $0.name.lowercased() }
+        let skills = workspaceSkills + discover(
+            in: userSkillsDirectory,
+            source: .user
         )
-        let legacyWorkspaceSkills = discover(
-            in: LocalStrayStorageLocation.workspaceSkillsDirectory(
-                workspaceURL: workspaceURL,
-                isLegacy: true
-            ),
-            source: .workspace
-        ).filter { !currentWorkspaceSkillNames.contains($0.name.lowercased()) }
-        var skills = workspaceSkills
-        skills.append(contentsOf: legacyWorkspaceSkills)
-        skills.append(contentsOf: discover(in: userSkillsDirectory, source: .user))
         return skills.sorted {
-            if $0.name == $1.name { return $0.source.rawValue < $1.source.rawValue }
-            return $0.name < $1.name
+            let nameOrder = $0.name.caseInsensitiveCompare($1.name)
+            if nameOrder == .orderedSame {
+                if $0.source != $1.source {
+                    return $0.source.takesPrecedence(over: $1.source)
+                }
+                return $0.fileURL.path < $1.fileURL.path
+            }
+            return nameOrder == .orderedAscending
         }
     }
 
@@ -49,7 +46,11 @@ public struct AgentSkillService: Sendable {
         var preferredByName: [String: AgentSkill] = [:]
         for skill in skills where enabledSkillIDs.contains(skill.id) {
             let key = skill.name.lowercased()
-            if preferredByName[key] == nil || skill.source == .workspace {
+            if let existing = preferredByName[key] {
+                if skill.source.takesPrecedence(over: existing.source) {
+                    preferredByName[key] = skill
+                }
+            } else {
                 preferredByName[key] = skill
             }
         }

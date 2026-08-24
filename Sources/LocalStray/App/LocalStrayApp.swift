@@ -1,6 +1,5 @@
 import AppKit
 import Foundation
-import OSLog
 import SwiftUI
 
 @MainActor
@@ -90,17 +89,7 @@ struct LocalStrayApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var appState: AppState
 
-    private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "LocalStray",
-        category: "RebrandMigration"
-    )
-
     init() {
-        do {
-            try LocalStrayRebrandMigration.migrateIfNeeded()
-        } catch {
-            Self.logger.error("Could not import legacy Local Stray user data.")
-        }
         _appState = State(initialValue: AppState())
     }
 

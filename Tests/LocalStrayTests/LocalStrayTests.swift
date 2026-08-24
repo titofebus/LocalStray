@@ -538,6 +538,10 @@ struct LocalStrayTests {
             contentsOf: sourceFile("Sources/LocalStray/Services/ServerHealthService.swift"),
             encoding: .utf8
         )
+        let storage = try String(
+            contentsOf: sourceFile("Sources/LocalStray/Models/LocalStrayStorageLocation.swift"),
+            encoding: .utf8
+        )
         let packager = try String(contentsOf: sourceFile("package_app.sh"), encoding: .utf8)
         let runtimeBuilder = try String(
             contentsOf: sourceFile("build_embedded_runtime.command"),
@@ -549,7 +553,13 @@ struct LocalStrayTests {
         #expect(package.contains("sparkle-project/Sparkle"))
         #expect(app.contains("Check for Updates…"))
         #expect(quickSettings.contains("Check for Updates"))
-        #expect(server.contains("LocalStrayRuntime/bin/qwen-prime-runtime"))
+        #expect(storage.contains("runtimeExecutableName = \"qwen-prime-runtime\""))
+        #expect(server.contains("LocalStrayStorageLocation.runtimeExecutableName"))
+        #expect(
+            server.contains(
+                "LocalStrayRuntime/bin/\\(LocalStrayStorageLocation.runtimeExecutableName)"
+            )
+        )
         #expect(packager.contains("LOCAL_STRAY_EMBEDDED_RUNTIME"))
         #expect(packager.contains("<string>app.dech.localstray</string>"))
         #expect(!packager.contains("com.adrian.localstray"))
@@ -648,9 +658,8 @@ struct LocalStrayTests {
         #expect(!releaseApp.contains("shasum -a 256 \"$ARCHIVE\""))
         #expect(packager.contains("Set SPARKLE_FEED_URL"))
         #expect(!packager.contains("adriancmurray/QwenPrime"))
-        #expect(publishing.contains("fresh installation"))
-        #expect(publishing.contains("A bridge"))
-        #expect(publishing.contains("old bundle identity"))
+        #expect(!publishing.contains("first launch"))
+        #expect(!publishing.contains("bridge release"))
     }
 
     @Test("Runtime model configuration persists atomically and validates directories")

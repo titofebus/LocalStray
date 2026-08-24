@@ -72,17 +72,7 @@ release command:
 - `HF_TOKEN` with write access to the model repositories.
 
 Do not put private values in shell history, source files, app resources,
-appcasts, logs, or GitHub Actions output. Before the first Local Stray release,
-import the existing Sparkle signing seed into the Local Stray Keychain account
-only when its signing continuity is desired. It does not make Qwen Prime update
-in place: Sparkle cannot replace the legacy `QwenPrime.app` and
-`app.dech.qwenprime` with `LocalStray.app` and `app.dech.localstray`.
-
-The first Local Stray release is therefore a fresh installation. It imports the
-supported local data on first launch without deleting Qwen Prime data. A bridge
-release is a separate, owner-authorized Qwen Prime publication: it requires
-control of the old feed and a package retaining the old bundle identity. Do not
-claim or ship that bridge from this repository without that authorization.
+appcasts, logs, or GitHub Actions output.
 
 ## Initial publication order
 
@@ -103,12 +93,6 @@ The command requires committed source, builds the locked embedded runtime,
 signs the complete app with hardened runtime, notarizes and staples it, creates
 the archive and checksum, signs the Sparkle appcast, commits that appcast, tags
 the release, pushes it, and creates the GitHub Release.
-
-Existing Qwen Prime appcast entries retain their original links, archive names,
-and signatures. The channel-level link points to the canonical Local Stray
-release page. The publisher preserves all prior entries while it adds new Local
-Stray releases and reasserts that channel link in its temporary copy before
-Sparkle signs the new item.
 
 ## Future app and runtime updates
 

@@ -103,10 +103,10 @@ struct SidebarAccessibilityContractTests {
 
   @Test("Project scope presents filesystem names without changing paths")
   func projectScopeDisplayNameIsHumanReadable() {
-    let sandbox = URL(fileURLWithPath: "/Users/example/local-stray-sandbox")
+    let sandbox = LocalStrayStorageLocation.defaultSandboxDirectory()
     let workspace = URL(fileURLWithPath: "/Users/example/agent_workspace")
 
-    #expect(ProjectScope.displayName(for: sandbox) == "Local Stray Sandbox")
+    #expect(ProjectScope.displayName(for: sandbox) == "Stray Sandbox")
     #expect(ProjectScope.displayName(for: workspace) == "Agent Workspace")
   }
 

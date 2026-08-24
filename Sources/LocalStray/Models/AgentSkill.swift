@@ -3,6 +3,19 @@ import Foundation
 public enum AgentSkillSource: String, Codable, Sendable, Equatable {
     case workspace
     case user
+
+    public func takesPrecedence(over other: Self) -> Bool {
+        precedenceRank < other.precedenceRank
+    }
+
+    public var precedenceRank: Int {
+        switch self {
+        case .workspace:
+            return 0
+        case .user:
+            return 1
+        }
+    }
 }
 
 public struct AgentSkill: Identifiable, Codable, Sendable, Equatable {

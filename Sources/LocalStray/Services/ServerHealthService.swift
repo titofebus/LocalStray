@@ -156,7 +156,7 @@ public actor ServerHealthService {
             self.verifiedIdentity = nil
             self.verifiedBaseURL = nil
             self.currentStatus = .disconnected(
-                reason: "Install qwen-prime-runtime or set LOCAL_STRAY_RUNTIME_EXECUTABLE"
+                reason: "Install \(LocalStrayStorageLocation.runtimeExecutableName) or set LOCAL_STRAY_RUNTIME_EXECUTABLE"
             )
             return
         }
@@ -271,16 +271,23 @@ public actor ServerHealthService {
         let environment = ProcessInfo.processInfo.environment
         let candidates = [
             Bundle.main.resourceURL?.appendingPathComponent(
-                "LocalStrayRuntime/bin/qwen-prime-runtime"
+                "LocalStrayRuntime/bin/\(LocalStrayStorageLocation.runtimeExecutableName)"
             ),
             environment["LOCAL_STRAY_RUNTIME_EXECUTABLE"].map(URL.init(fileURLWithPath:)),
             LocalStrayStorageLocation.currentApplicationSupportDirectory()
-                .appendingPathComponent("runtime/bin/qwen-prime-runtime"),
-            LocalStrayRebrandMigration.legacyRuntimeExecutableURL(),
+                .appendingPathComponent(
+                    "runtime/bin/\(LocalStrayStorageLocation.runtimeExecutableName)"
+                ),
             FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent(".local/bin/qwen-prime-runtime"),
-            URL(fileURLWithPath: "/opt/homebrew/bin/qwen-prime-runtime"),
-            URL(fileURLWithPath: "/usr/local/bin/qwen-prime-runtime"),
+                .appendingPathComponent(
+                    ".local/bin/\(LocalStrayStorageLocation.runtimeExecutableName)"
+                ),
+            URL(
+                fileURLWithPath: "/opt/homebrew/bin/\(LocalStrayStorageLocation.runtimeExecutableName)"
+            ),
+            URL(
+                fileURLWithPath: "/usr/local/bin/\(LocalStrayStorageLocation.runtimeExecutableName)"
+            ),
         ].compactMap { $0 }
 
         return candidates.first {

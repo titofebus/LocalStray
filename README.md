@@ -156,9 +156,6 @@ Enabled skills are still loaded only when the prompt explicitly names them,
 for example `$swift-review`. Each loaded skill appears in the conversation as a
 Skill card so the run's added context is visible.
 
-For continuity, `<workspace>/.qwenprime/skills` remains readable during the
-rebrand. A Local Stray package with the same name takes precedence.
-
 Skills v1 loads only the selected `SKILL.md` instructions. It does not execute
 bundled scripts, read referenced files, add tools, expand workspace or network
 access, or bypass an approval. Symlinked and oversized skill files are ignored;
@@ -189,18 +186,7 @@ silently selecting a legacy harness checkout. To package an existing payload, se
 `LocalStray.app/Contents/Resources/LocalStrayRuntime`; user model paths remain in
 Application Support and survive app replacement.
 
-The first Local Stray launch imports Qwen Prime conversations, runtime
-configuration, skills, and supported preferences only when their Local Stray
-destinations are absent. It never deletes or moves the original data. The new
-default workspace is `~/local-stray-sandbox`. On first launch, Local Stray
-non-destructively copies missing contents from `~/prime-sandbox` and leaves the
-original folder untouched; it can also still be selected manually.
-
-Because Local Stray has a new app bundle name and bundle identifier, existing
-Qwen Prime installations do not update in place through Sparkle. Install the
-first Local Stray release as a fresh app; it performs the one-time local import
-on launch. A Qwen Prime bridge release would require control of its old release
-feed and must retain its legacy bundle identity.
+The default workspace is `~/stray-sandbox`.
 
 After the one-time Developer ID, notarization, and Sparkle signing credentials
 are configured, a release is published locally with:
